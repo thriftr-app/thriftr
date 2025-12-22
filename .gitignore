@@ -1,0 +1,38 @@
+# ========== SECRETS ==========
+.env
+.env.*
+*.env
+*.pem
+*.key
+*.crt
+
+# ========== PYTHON ==========
+__pycache__/
+*.py[cod]
+appenv/
+*.egg-info/
+dist/
+build/
+
+.vscode/
+
+docker-compose.override.yml
+docker-data/
+
+# ========== DATABASE ==========
+
+# ========== LOGS ==========
+*.log
+logs/
+
+# ========== OS ==========
+.DS_Store
+*.swp
+
+# ========== FRONTEND ==========
+node_modules/
+
+# ========== MISC ==========
+uploads/
+tmp/
+openapi.json
