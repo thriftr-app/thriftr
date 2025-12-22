@@ -1,11 +1,7 @@
-from fastapi import FastAPI
-
+from fastapi import FastAPI, APIRouter
+import database.db as db
+import security.auth as auth
 app = FastAPI()
 
-@app.get('/')
-async def root():
-    return {"message": "Hello World!"}
-
-@app.get('/print_number')
-async def print_user_num(num: int):
-    return {"number": num}
+app.include_router(auth.router)
+app.include_router(db.router)
