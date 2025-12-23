@@ -8,7 +8,7 @@ class LoginRequest(BaseModel):
 
     @model_validator(mode='after')
     def validate_request(self):
-        if self.username == None and self.password == None:
+        if self.username == None and self.email == None:
             raise ValueError("Username or Email must be provided")
         return self
     
@@ -23,5 +23,17 @@ class LoginRequest(BaseModel):
             raise ValueError("Password must contain at least one number")
         if not re.search(r"[^A-Za-z0-9]", password):
             raise ValueError("Password must contain at least one special character")
-        return password 
+        return password
 
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, email:str) -> str:
+        at_index = email.index("@")
+        if at_index == -1:
+            raise ValueError("Email should have an @ symbol")
+        email_name = email[:at_index]
+        if len(email_name) < 3:
+            raise ValueError("Email username should be at least 3 characters")
+        if at_index == len(email)-1 or '.' not in email[at_index+1:] or len(email[at_index+1:]) < 5 or email[-1] == '.':
+            raise ValueError("Email domain improperly formatted")
+        return email
