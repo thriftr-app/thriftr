@@ -36,3 +36,4 @@ node_modules/
 uploads/
 tmp/
 openapi.json
+.coverage

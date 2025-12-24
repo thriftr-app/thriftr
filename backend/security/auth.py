@@ -5,7 +5,7 @@ from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from jose import jwt, JWTError
 from fastapi import APIRouter
-from models.login_request import LoginRequest
+from backend.models.login_request import LoginRequest
 router = APIRouter(prefix='/auth', tags=['auth'])
 
 @router.post("/", status_code=status.HTTP_200_OK)

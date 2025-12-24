@@ -1,6 +1,6 @@
 from fastapi import FastAPI, APIRouter
-import database.db as db
-import security.auth as auth
+from backend.database import db
+from backend.security import auth
 app = FastAPI()
 
 app.include_router(auth.router)

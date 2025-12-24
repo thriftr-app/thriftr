@@ -12,6 +12,20 @@ class LoginRequest(BaseModel):
             raise ValueError("Username or Email must be provided")
         return self
     
+    @field_validator("username")
+    @classmethod
+    def validate_username(cls, username: str) -> str:
+        if not re.fullmatch(r"[A-Za-z0-9_]+", username):
+            raise ValueError("Username can only contain letters, numbers, and underscores")
+
+        if username.startswith("_") or username.endswith("_"):
+            raise ValueError("Username cannot start or end with '_'")
+
+        if "__" in username:
+            raise ValueError("Username cannot contain consecutive underscores")
+
+        return username
+
     @field_validator('password')
     @classmethod
     def validate_password(cls, password:str) -> str:
