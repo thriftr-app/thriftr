@@ -37,4 +37,4 @@ uploads/
 tmp/
 openapi.json
 .coverage
-pytest_cache
+.pytest_cache
