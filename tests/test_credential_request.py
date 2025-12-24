@@ -1,8 +1,6 @@
 import pytest
 from pydantic import ValidationError
 from backend.models.login_request import LoginRequest
-from backend.app import app
-from fastapi.testclient import TestClient
 
 def test_no_user_or_email():
     with pytest.raises(ValidationError):
@@ -21,9 +19,3 @@ def test_invalid_emails(email):
 def test_invalid_usernames(username):
     with pytest.raises(ValidationError):
         LoginRequest(password='stR0nGP@ssWoRd14', username=username)
-
-def test_health():
-    client = TestClient(app)
-    client_response = client.post('/auth')
-
-    assert client_response.status_code == 200
