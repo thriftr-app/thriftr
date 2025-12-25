@@ -53,3 +53,4 @@ async def register_user(request: RegisterRequest, db: Annotated[Client, Depends(
     if not account_creation_res.data:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Account creation failed, try again later")
     return {"REQUEST": "registration", "user_registered": username, "SUCESS": True} 
+
