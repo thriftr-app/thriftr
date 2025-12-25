@@ -1,9 +1,9 @@
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, EmailStr
 import re
 
 class RegisterRequest(BaseModel):
     username: str = Field(min_length=3)
-    email: str = Field(min_length=3)
+    email: EmailStr
     password: str = Field(min_length = 8)
 
     
@@ -33,17 +33,4 @@ class RegisterRequest(BaseModel):
         if not re.search(r"[^A-Za-z0-9]", password):
             raise ValueError("Password must contain at least one special character")
         return password
-
-    @field_validator("email")
-    @classmethod
-    def validate_email(cls, email:str) -> str:
-        at_index = email.index("@")
-        if at_index == -1:
-            raise ValueError("Email should have an @ symbol")
-        email_name = email[:at_index]
-        if len(email_name) < 3:
-            raise ValueError("Email username should be at least 3 characters")
-        if at_index == len(email)-1 or '.' not in email[at_index+1:] or len(email[at_index+1:]) < 5 or email[-1] == '.':
-            raise ValueError("Email domain improperly formatted")
-        return email
 
