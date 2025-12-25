@@ -24,6 +24,15 @@ oauth2_bearer = OAuth2PasswordBearer(tokenUrl='auth/token')
 class Token(BaseModel):
     token: str
     token_type: str
+
+def get_table_by_env(table: str) -> str:
+    envs = {'dev', 'test', 'prod'}
+    environment = os.environ.get('ENV')
+    if environment not in envs:
+        raise RuntimeError(f'ENV invalid: {environment}')
+    if environment == 'prod':
+        return table
+    return f'{table}_{environment}' 
      
 @router.post("/", status_code=status.HTTP_200_OK)
 async def auth_base():
@@ -37,9 +46,8 @@ async def login(request: LoginRequest):
 async def register_user(request: RegisterRequest, db: Annotated[Client, Depends(get_db_connection)]):
     username = request.username
     email = request.email
-    quote_username = quote(request.username)
-    quote_email = quote(request.email)
-    existing_accounts_response = db.table('users').select('username,email').or_(f"username.eq.{username},email.eq.{email}").limit(1).execute()
+    users_table = get_table_by_env('users')
+    existing_accounts_response = db.table(users_table).select('username,email').or_(f"username.eq.{username},email.eq.{email}").limit(1).execute()
     existing_accounts = existing_accounts_response.data
 
     if existing_accounts:
@@ -49,7 +57,7 @@ async def register_user(request: RegisterRequest, db: Annotated[Client, Depends(
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Account with that email already exists")
 
     hashed_pass = crypt_context.hash(request.password)
-    account_creation_res = (db.table('users').insert({'username': username, 'password': hashed_pass, 'email': email}).execute())
+    account_creation_res = (db.table(users_table).insert({'username': username, 'password': hashed_pass, 'email': email}).execute())
     if not account_creation_res.data:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Account creation failed, try again later")
     return {"REQUEST": "registration", "user_registered": username, "SUCESS": True} 
