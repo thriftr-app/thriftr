@@ -38,3 +38,6 @@ tmp/
 openapi.json
 .coverage
 .pytest_cache
+quality_reports/
+.ruff_cache
+
