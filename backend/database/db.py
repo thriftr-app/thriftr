@@ -35,7 +35,7 @@ async def lookup_user(identifier: str, db: Annotated[Client, Depends(get_db_conn
     return {'found': len(existing_accounts_response.data) > 0 }
 
 @router.post('/accounts/delete', status_code=status.HTTP_200_OK)
-async def delete_account(identifier: str, db:Annotated[Client, Depends(get_db_connection)], status_code=status.HTTP_200_OK):
+async def delete_account(identifier: str, db:Annotated[Client, Depends(get_db_connection)]):
     users_table = get_table_by_env('users')
     deletion_response = db.table(users_table).delete().or_(f'username.eq.{identifier},email.eq.{identifier}').execute()
     if not deletion_response.data:
