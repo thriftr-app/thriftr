@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends
 from fastapi import HTTPException
 from backend.models.login_request import LoginRequest
 from backend.models.register_request import RegisterRequest
-from backend.database.db import get_db_connection
+from backend.database.db import get_db_connection, get_table_by_env
 from typing import Annotated
 from supabase import Client
 import os
@@ -25,14 +25,6 @@ class Token(BaseModel):
     token: str
     token_type: str
 
-def get_table_by_env(table: str) -> str:
-    envs = {'dev', 'test', 'prod'}
-    environment = os.environ.get('ENV')
-    if environment not in envs:
-        raise RuntimeError(f'ENV invalid: {environment}')
-    if environment == 'prod':
-        return table
-    return f'{table}_{environment}' 
      
 @router.post("/", status_code=status.HTTP_200_OK)
 async def auth_base():
