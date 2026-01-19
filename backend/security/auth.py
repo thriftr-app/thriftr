@@ -13,7 +13,7 @@ from typing import Annotated
 from supabase import Client
 import os
 
-router = APIRouter(prefix='/auth', tags=['auth'])
+router = APIRouter(prefix='/api/auth', tags=['auth'])
 
 SECRET_KEY = os.environ.get('AUTH_HASH_KEY')
 ALGORITHM = os.environ.get('SECRET_ALGORITHM')
@@ -25,10 +25,6 @@ class Token(BaseModel):
     token: str
     token_type: str
 
-     
-@router.post("/", status_code=status.HTTP_200_OK)
-async def auth_base():
-    return {"auth": "auth_base"}
 
 @router.post("/login", status_code=status.HTTP_200_OK)
 async def login(request: LoginRequest):
