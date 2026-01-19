@@ -19,14 +19,9 @@ SECRET_KEY = os.environ.get('AUTH_HASH_KEY')
 ALGORITHM = os.environ.get('SECRET_ALGORITHM')
 
 crypt_context = CryptContext(schemes=['bcrypt_sha256'], deprecated='auto')
-oauth2_bearer = OAuth2PasswordBearer(tokenUrl='auth/token')
+oauth2_bearer = OAuth2PasswordBearer(tokenUrl='/api/auth/token')
 
-class Token(BaseModel):
-    token: str
-    token_type: str
-
-
-@router.post("/login", status_code=status.HTTP_200_OK)
+@router.post("/token", status_code=status.HTTP_200_OK)
 async def login(request: LoginRequest):
     return {"login": "request received"}
 
