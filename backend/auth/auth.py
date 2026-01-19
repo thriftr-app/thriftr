@@ -6,8 +6,8 @@ from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from jose import jwt, JWTError
 from fastapi import APIRouter, Depends
 from fastapi import HTTPException
-from backend.models.login_request import LoginRequest
-from backend.models.register_request import RegisterRequest
+from backend.auth.models.login_request import LoginRequest
+from backend.auth.models.register_request import RegisterRequest
 from backend.database.db import get_db_connection, get_table_by_env
 from typing import Annotated
 from supabase import Client

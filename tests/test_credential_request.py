@@ -1,6 +1,6 @@
 import pytest
 from pydantic import ValidationError
-from backend.models.login_request import LoginRequest
+from backend.auth.models.login_request import LoginRequest
 
 def test_no_user_or_email():
     with pytest.raises(ValidationError):
