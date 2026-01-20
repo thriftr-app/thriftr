@@ -36,3 +36,8 @@ def get_table_by_env(table: str) -> str:
     if environment == 'prod':
         return table
     return f'{table}_{environment}' 
+
+def delete_user(db: Client, identifier: str) -> bool:
+    users_table = get_table_by_env('users')
+    response = db.table(users_table).delete().or_(f"username.eq.{identifier},email.eq.{identifier}").execute()
+    return len(response.data) > 0
