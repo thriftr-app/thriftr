@@ -6,31 +6,22 @@ from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from jose import jwt, JWTError
 from fastapi import APIRouter, Depends
 from fastapi import HTTPException
-from backend.models.login_request import LoginRequest
-from backend.models.register_request import RegisterRequest
+from backend.auth.models.login_request import LoginRequest
+from backend.auth.models.register_request import RegisterRequest
 from backend.database.db import get_db_connection, get_table_by_env
 from typing import Annotated
 from supabase import Client
 import os
 
-router = APIRouter(prefix='/auth', tags=['auth'])
+router = APIRouter(prefix='/api/auth', tags=['auth'])
 
 SECRET_KEY = os.environ.get('AUTH_HASH_KEY')
 ALGORITHM = os.environ.get('SECRET_ALGORITHM')
 
 crypt_context = CryptContext(schemes=['bcrypt_sha256'], deprecated='auto')
-oauth2_bearer = OAuth2PasswordBearer(tokenUrl='auth/token')
+oauth2_bearer = OAuth2PasswordBearer(tokenUrl='/api/auth/token')
 
-class Token(BaseModel):
-    token: str
-    token_type: str
-
-     
-@router.post("/", status_code=status.HTTP_200_OK)
-async def auth_base():
-    return {"auth": "auth_base"}
-
-@router.post("/login", status_code=status.HTTP_200_OK)
+@router.post("/token", status_code=status.HTTP_200_OK)
 async def login(request: LoginRequest):
     return {"login": "request received"}
 
@@ -52,5 +43,5 @@ async def register_user(request: RegisterRequest, db: Annotated[Client, Depends(
     account_creation_res = (db.table(users_table).insert({'username': username, 'password': hashed_pass, 'email': email}).execute())
     if not account_creation_res.data:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Account creation failed, try again later")
-    return {"REQUEST": "registration", "user_registered": username, "SUCESS": True} 
+    return {"REQUEST": "registration", "user_registered": username, "SUCCESS": True} 
 

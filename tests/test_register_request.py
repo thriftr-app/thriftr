@@ -1,5 +1,5 @@
 import pytest
-from backend.models.register_request import RegisterRequest
+from backend.auth.models.register_request import RegisterRequest
 from pydantic import ValidationError
 
 def test_no_email():
