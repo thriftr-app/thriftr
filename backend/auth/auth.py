@@ -10,7 +10,7 @@ from backend.auth.models.login_request import LoginRequest
 from backend.database.models.user import UserResponse 
 from backend.auth.models.token import Token
 from backend.auth.models.register_request import RegisterRequest
-from backend.database.utils.db_utils import get_db_connection, get_table_by_env, user_exists, get_user, get_user_by_id
+from backend.database.utils.db_utils import get_db_connection, get_table_by_env, user_exists, get_user, get_user_by_id, delete_user
 from typing import Annotated
 from supabase import Client
 from datetime import datetime, timedelta, timezone
@@ -38,6 +38,30 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     data_to_encode.update({'exp': expire})
     encoded_jwt = jwt.encode(data_to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+
+@router.delete('/current_user', status_code=status.HTTP_200_OK)
+async def delete_current_user(token: Annotated[str, Depends(oauth2_bearer)], db: Annotated[Client, Depends(get_db_connection)]):
+    credential_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Could not verify credentials')
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id_str: str = payload.get('sub')
+        if user_id_str is None:
+            raise credential_exception
+        user_id = int(user_id_str)
+    except (JWTError, ValueError):
+        raise credential_exception
+
+    user = get_user_by_id(db, user_id=user_id)
+    if user is None:
+        raise credential_exception
+
+    username = user.get('username')
+    deleted = delete_user(db, identifier=username)
+    if not deleted:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Account deletion failed')
+    
+    return {'message': 'Account deleted successfully', 'username': username}
 
 @router.get('/current_user', status_code=status.HTTP_200_OK)
 async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)], db: Annotated[Client, Depends(get_db_connection)]) -> UserResponse:
