@@ -14,7 +14,9 @@ class LoginRequest(BaseModel):
     
     @field_validator("username")
     @classmethod
-    def validate_username(cls, username: str) -> str:
+    def validate_username(cls, username: str | None) -> str | None:
+        if username is None:
+            return None
         if not re.fullmatch(r"[A-Za-z0-9_]+", username):
             raise ValueError("Username can only contain letters, numbers, and underscores")
 

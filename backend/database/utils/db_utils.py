@@ -16,6 +16,13 @@ def get_user(db: Client, identifier: str) -> dict | None:
         return None
     return response.data[0]
 
+def get_user_by_id(db: Client, user_id: int) -> dict | None:
+    users_table = get_table_by_env('users')
+    response = db.table(users_table).select('id,username,email,password').eq('id', user_id).limit(1).execute()
+    if len(response.data) == 0:
+        return None
+    return response.data[0]
+
 def user_exists(db: Client, identifier: str) -> bool:
     users_table = get_table_by_env('users')
     response = db.table(users_table).select('id').or_(f"username.eq.{identifier},email.eq.{identifier}").limit(1).execute()

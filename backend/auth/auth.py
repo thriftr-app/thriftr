@@ -7,10 +7,10 @@ from jose import jwt, JWTError
 from fastapi import APIRouter, Depends
 from fastapi import HTTPException
 from backend.auth.models.login_request import LoginRequest
-from backend.database.models.user import User
+from backend.database.models.user import UserResponse 
 from backend.auth.models.token import Token
 from backend.auth.models.register_request import RegisterRequest
-from backend.database.utils.db_utils import get_db_connection, get_table_by_env, user_exists, get_user
+from backend.database.utils.db_utils import get_db_connection, get_table_by_env, user_exists, get_user, get_user_by_id
 from typing import Annotated
 from supabase import Client
 from datetime import datetime, timedelta, timezone
@@ -21,8 +21,13 @@ router = APIRouter(prefix='/api/auth', tags=['auth'])
 SECRET_KEY = os.environ.get('AUTH_HASH_KEY')
 ALGORITHM = os.environ.get('SECRET_ALGORITHM')
 
+if SECRET_KEY is None or ALGORITHM is None:
+    raise RuntimeError("AUTH_HASH_KEY and SECRET_ALGORITHM must be set in environment")
+
 crypt_context = CryptContext(schemes=['bcrypt_sha256'], deprecated='auto')
 oauth2_bearer = OAuth2PasswordBearer(tokenUrl='/api/auth/token')
+
+DUMMY_PASSWORD_HASH = "$bcrypt-sha256$v=2,t=2b,r=12$N.b83rO2ds45hzLmXMuZOO$53eZnLaXPEHLPuonMVYv4ur5qbilq0C"
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     data_to_encode = data.copy()
@@ -35,33 +40,37 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     return encoded_jwt
 
 @router.get('/current_user', status_code=status.HTTP_200_OK)
-async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)], db: Annotated[Client, Depends(get_db_connection)]) -> User:
+async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)], db: Annotated[Client, Depends(get_db_connection)]) -> UserResponse:
+    credential_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials")
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get('sub')
-        if username is None:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials")
-    except JWTError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials")
-    user = get_user(db, identifier=username)
+        user_id_str: str = payload.get('sub')
+        if user_id_str is None:
+            raise credential_exception
+        user_id = int(user_id_str)
+    except (JWTError, ValueError):
+        raise credential_exception
+    user = get_user_by_id(db, user_id=user_id)
     if user is not None:
-        return User.model_validate(user)
-    return None
+        del user['password']
+        return UserResponse.model_validate(user)
+    raise credential_exception
 
 @router.post("/token", status_code=status.HTTP_200_OK)
 async def login(request: LoginRequest, db: Annotated[Client, Depends(get_db_connection)]) -> Token:
-
+    credential_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     user_identifier = request.username if request.username else request.email
     user = get_user(db = db, identifier = user_identifier) 
 
     if user is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+        crypt_context.verify(request.password, DUMMY_PASSWORD_HASH)
+        raise credential_exception 
     database_password = user.get('password')
     if not crypt_context.verify(request.password, database_password):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect password")
+        raise credential_exception
 
     expiration_delta = timedelta(minutes=30) 
-    access_token = create_access_token(data={"sub": user.get('email')}, expires_delta=expiration_delta)
+    access_token = create_access_token(data={"sub": str(user.get('id'))}, expires_delta=expiration_delta)
     return Token(access_token=access_token, token_type="bearer")
 
 @router.post("/register", status_code=status.HTTP_200_OK)
