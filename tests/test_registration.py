@@ -1,5 +1,6 @@
 import pytest
 from backend.auth.models.register_request import RegisterRequest
+from backend.auth.models.login_request import LoginRequest
 from fastapi.testclient import TestClient
 from backend.app import app
 import os
@@ -11,8 +12,7 @@ def cleanup_account(identifier: str):
     
     if lookup_result.get('found'):
         delete_result = client.delete('api/db/accounts/delete', params={'identifier': identifier})
-        assert delete_result.status_code == 200, f"Failed to delete account {identifier} during cleanup."
-    
+        assert delete_result.status_code == 200, f"Failed to delete account {identifier} during cleanup."  
 
 def test_dupe_username():
     username = 'test'
